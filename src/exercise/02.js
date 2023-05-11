@@ -4,29 +4,49 @@
 import * as React from 'react'
 import {Switch} from '../switch'
 
-function Toggle() {
+function Toggle({children}) {
   const [on, setOn] = React.useState(false)
   const toggle = () => setOn(!on)
 
   // 🐨 replace this with a call to React.Children.map and map each child in
   // props.children to a clone of that child with the props they need using
   // React.cloneElement.
-  // 💰 React.Children.map(props.children, child => {/* return child clone here */})
+  return React.Children.map(children, child => {
+    // Esto es para el caso de span. Se fija si el tipo del hijo es string. Si lo es, retorna el hijo sin clonarlo
+    // Y sin pasarle las props que no queremos usar en ese tipo de hijo.
+    if (typeof child.type === 'string') {
+      return child
+    } else {
+      return React.cloneElement(child, {on, toggle})
+    }
+  })
   // 📜 https://reactjs.org/docs/react-api.html#reactchildren
   // 📜 https://reactjs.org/docs/react-api.html#cloneelement
-  return <Switch on={on} onClick={toggle} />
+  // return <Switch on={on} onClick={toggle} />
 }
 
 // 🐨 Flesh out each of these components
 
 // Accepts `on` and `children` props and returns `children` if `on` is true
-const ToggleOn = () => null
+const ToggleOn = ({on, children}) => {
+  if (on) {
+    return children
+  }
+}
 
 // Accepts `on` and `children` props and returns `children` if `on` is false
-const ToggleOff = () => null
+const ToggleOff = ({on, children}) => {
+  if (!on) {
+    return children
+  }
+}
 
 // Accepts `on` and `toggle` props and returns the <Switch /> with those props.
-const ToggleButton = () => null
+const ToggleButton = ({on, toggle}) => <Switch on={on} onClick={toggle} />
+
+// el padre Toggle maneja el estado. a cualquier hijo que tenga le pasa on y toggle
+// el hijo ToggleOn muestra lo que reciba de children si on es true, y el hijo ToggleOn lo hace si on es false
+// el hijo ToggleButton toma las funciones on y toggle para manejar el button
 
 function App() {
   return (
@@ -35,6 +55,7 @@ function App() {
         <ToggleOn>The button is on</ToggleOn>
         <ToggleOff>The button is off</ToggleOff>
         <ToggleButton />
+        <span>Hello</span>
       </Toggle>
     </div>
   )
