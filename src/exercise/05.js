@@ -4,10 +4,16 @@
 import * as React from 'react'
 import {Switch} from '../switch'
 
-const callAll = (...fns) => (...args) => fns.forEach(fn => fn?.(...args))
+// CallAll recibe un arreglo de operaciones
+// para cada elemento del arreglo, si la funcion es ejecutable, la ejecuta con ..args
+const callAll =
+  (...fns) =>
+  (...args) =>
+    fns.forEach(fn => fn?.(...args))
 
 function toggleReducer(state, {type, initialState}) {
   switch (type) {
+    // Buena practica es pasar esto a constantes ('toggle', 'reset', etc)
     case 'toggle': {
       return {on: !state.on}
     }
@@ -21,12 +27,12 @@ function toggleReducer(state, {type, initialState}) {
 }
 
 // 🐨 add a new option called `reducer` that defaults to `toggleReducer`
-function useToggle({initialOn = false} = {}) {
+function useToggle({initialOn = false, reducer = toggleReducer}) {
   const {current: initialState} = React.useRef({on: initialOn})
   // 🐨 instead of passing `toggleReducer` here, pass the `reducer` that's
   // provided as an option
   // ... and that's it! Don't forget to check the 💯 extra credit!
-  const [state, dispatch] = React.useReducer(toggleReducer, initialState)
+  const [state, dispatch] = React.useReducer(reducer, initialState)
   const {on} = state
 
   const toggle = () => dispatch({type: 'toggle'})
@@ -61,20 +67,12 @@ function App() {
   const clickedTooMuch = timesClicked >= 4
 
   function toggleStateReducer(state, action) {
-    switch (action.type) {
-      case 'toggle': {
-        if (clickedTooMuch) {
-          return {on: state.on}
-        }
-        return {on: !state.on}
-      }
-      case 'reset': {
-        return {on: false}
-      }
-      default: {
-        throw new Error(`Unsupported type: ${action.type}`)
-      }
+    // Si clickee muchas veces y la accion es toggle, entonces dejo prendido
+    // Sino, devuelvo el reducer por defecto y que se encargue él
+    if (action.type === 'toggle' && clickedTooMuch) {
+      return {on: state.on}
     }
+    return toggleReducer(state, action)
   }
 
   const {on, getTogglerProps, getResetterProps} = useToggle({
